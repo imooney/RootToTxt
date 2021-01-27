@@ -1,0 +1,24 @@
+#number of datasets
+2
+#number of "panels" (e.g. pT, or R, or eta, or another auxiliary independent variable)
+1
+#root file input (full path)
+/Users/imoo/physics/AN/rootfiles/Fig2.root
+#what follows should be the basename of the histograms from which to pull the values. E.g. with 2 datasets (say 200, 500 GeV) & 2 selections of pT, what follows would be something like "name200_" (newline) "name500_" [no quotes]. It is assumed that the histograms for the different pT (or other) selections will be numbered, indexed from 0, so it expects you then to have four histograms: "name200_0", "name200_1", "name500_0", and "name500_1".
+nom_
+nom_g_
+#number of uncertainties on each distribution (e.g. 2 if 1 statistical & 1 systematic). It is assumed that all datasets and "panels" have the same number of uncertainties.
+1
+#basename of histogram for each error. E.g. for above example, if N_uncertainties = 2, then the lines below should be something like: "herr0_200_" (newline) "herr1_200_" (newline) "herr0_500_" (newline) "herr1_500_" [no quotes] [in that order, i.e. dataset0's K histograms for uncertainties followed by dataset1's K histograms for uncertainties]. [It's also likely that the name of at least one of the uncertainty histograms is the same as the result histogram name, which is fine.] If there are no uncertainties, make sure after the newline of this comment, we go straight to the next comment with no blank lines.
+nom_
+nom_g_
+#labels (e.g. for 2 errors, one statistical and one systematic it'd be: "stat" (newline) "syst"). All uncertainties assumed symmetric for the forseeable future.
+stat
+#x-axis
+$p_{T,jet} [GeV/c]$
+#y-axis title(s) (exactly 1 for each dataset, even if it's the same, so N_lines between this comment and the next should be same as #number-of-datasets at beginning of this file)
+$1/N dN/dM [GeV/c^{2}]$
+$1/N dN/dM_{g} [GeV/c^{2}]$
+#label(s) (exactly 1 for each dataset and each panel (so should be N_datasets*N_panels total lines below, in the order: dataset0panel0 (newline) dataset0panel1,..., dataset1panel0 (newline) dataset1panel1, ...))
+$M$ for $20 < p_{T} < 25 GeV/c$
+$M_{g}$ for $20 < p_{T} < 25 GeV/c$

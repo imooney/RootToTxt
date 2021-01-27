@@ -35,118 +35,151 @@
 
 using namespace std;
 
-//pass: k < N*M, x-axis, y-axes, labels, txtfile
-void header (const int i, const int j, const string xtitle, vector<vector<string>> ytitles, vector<vector<string>> labels, ofstream& file) {
+//pass: i < N, j < M, x-axis, y-axes, labels, errlabels, txtfile
+void header (const int i, const int j, const string xtitle, vector<string> ytitles, vector<vector<string>> labels, vector<string> errlabels, ofstream& file) {
     file << xtitle << "\n";
     file << 2 << "\n"; //N_datasets / file = 1 by default
-    file << ytitles[i][j] << "\n";
+    file << ytitles[i] << "\n";
     file << labels[i][j] << "\n";
     file << "yes\n"; //data is binned
     file << "none\n"; //data has no x-stat err.
     file << "none\n"; //data has no x-syst err.
-    file << "1\n"; //number of uncertainties
-    file << "stat\n"; //uncertainty 1 label
-    file << "symmetric\n"; //errors are symmetric
-    file << "syst\n"; //uncertainty 2 label
-    file << "symmetric\n"; //errors are symmetric
+    file << errlabels.size() << "\n"; //number of uncertainties
+    for (int k = 0; k < errlabels.size(); ++ k) {
+        file << errlabels[k] << "\n";
+        file << "symmetric\n"; //errors are symmetric
+    }
     
     cout << "header written" << endl;
     return;
 }
 
-void body (TH1D* hist, TH1D* hstat, TH1D* hsyst, ofstream& file) {
+void body (TH1D* hist, vector<TH1D*> herrs, ofstream& file) {
     
     for (int i = 1; i <= hist->GetNbinsX(); ++ i) {//hstat->GetNbinsX(),hsyst->GetNbinsX() must give same #
         file << hist->GetXaxis()->GetBinLowEdge(i) << "-" << hist->GetXaxis()->GetBinUpEdge(i) << "\t";
         file << hist->GetBinContent(i) << "\t";
-        file << hstat->GetBinError(i) << "\t";
-        file << hsyst->GetBinError(i) << "\n";
+        for (int j = 0; j < herrs.size(); ++ j) {
+            file << herrs[j]->GetBinError(i);
+            if (j != (herrs.size()-1)) { file << "\t";}
+            else {file << "\n";}
+        }
     }
     cout << "body written" << endl;
     return;
 }
 
-void root_to_txt() {
+//helper function to make sure I never forget to burn the comment line
+void get_line (ifstream& file, string& burn, string& val) {
+    getline(file, burn);
+    getline(file, val);
+    return;
+}
+
+void root_to_txt_inprogress() {
+  
+    cout << "A" << endl;
+    string settingsFile = "settings.txt";
+    ifstream fset;
+    fset.open(settingsFile);
+    if (fset.is_open()) {cout << "opened " << settingsFile << endl;}
+    else {cerr << settingsFile << " could not be opened" <<endl; exit(1);}
     
-    // !!!!!! to be changed to suit your needs !!!!!! //
-    const int N = 2; // N data sets
-    const int M = 1; // M panels (e.g. variation over R or pT)
-    const string root_in = "/Users/imoo/physics/AN/rootfiles/Fig2.root";
-    const string root_in_substr = root_in.substr(0,root_in.length() - 5); //removes ".root".
-    //const string txt_out = (root_in_substr+".txt").c_str();
+    cout << "B" << endl;
+    string val;
+    string burn; //burn is for comments that we skip over - not strictly necessary, but helpful mentally
+    
+    get_line(fset,burn,val);
+    int N = stoi(val);// N data sets
+    get_line(fset,burn,val);
+    int M = stoi(val); // M panels (e.g. variation over R or pT)
+    get_line(fset,burn,val);
+    string root_in = val;
+    string extension = ".root";
+    int len_extension = extension.length();
+    cout << len_extension << endl;
+    const string root_in_substr = root_in.substr(0,root_in.length() - len_extension); //removes ".root" (5 characters long)
     vector<string> datname;
-    datname.push_back("nom_");
-    datname.push_back("nom_g_");
-    vector<string> statname = datname;//assumes that the data histograms also have the statistical errors
-    vector<string> systname;
-    systname.push_back("nom_");//w_systs_
-    systname.push_back("nom_g_");//w_systs_g_
-    
-    const string xaxis = "$p_{T,jet} [GeV/c]$";
-    
-    vector<vector<string>> yaxes;
+    getline(fset,burn);
     for (int i = 0; i < N; ++ i) {
-        vector<string> yaxes_aux;
-        if (i == 0) {
-        for (int j = 0; j < M; ++ j) {
-            //default -- all data sets and selections have the same y-axis title:
-            yaxes_aux.push_back("$1/N dN/dM [GeV/c^{2}]$");
+        getline(fset,val);//normal getline since we have N lines without comments
+        datname.push_back(val);
+    }
+    //how many uncertainties?
+    get_line(fset,burn,val);
+    int Nerrs = stoi(val);
+    cout << "test: " << Nerrs << endl;
+    vector<vector<string>> errnames;
+    getline(fset,burn);
+    for (int i = 0; i < N; ++ i) {
+        vector<string> errname_aux;
+        for (int j = 0; j < Nerrs; ++ j) {
+            getline(fset,val);
+            errname_aux.push_back(val);
         }
-            yaxes.push_back(yaxes_aux);
-        }
-        if (i == 1) {
-        for (int j = 0; j < M; ++ j) {
-            //default -- all data sets and selections have the same y-axis title:
-            yaxes_aux.push_back("$1/N dN/dM_{g} [GeV/c^{2}]$");
-        }
-            yaxes.push_back(yaxes_aux);
-        }
-        
+        errnames.push_back(errname_aux);
     }
     
+    cout << "C" << endl;
+    
+    vector<string> errlabels;
+    getline(fset,burn);
+    for (int i = 0; i < Nerrs; ++ i) {
+        getline(fset,val);
+        errlabels.push_back(val);
+    }
+    
+    get_line(fset,burn,val);
+    const string xaxis = val;
+    
+    getline(fset,burn);
+    vector<string> yaxes;
+    for (int i = 0; i < N; ++ i) {
+        getline(fset,val);
+        cout << "VAL? " << val << endl;
+        yaxes.push_back(val);
+        cout << "yak? " << yaxes[i] << endl;
+    }
+    
+    cout << "D" << endl;
+    
     vector<vector<string>> labels;
-    //vector<string> labels_aux;
-    //default to length 3. Not sure how to make this more general and less hard-coded, since the labels are unique to the particular paper and figure and will all be distinct from each other.
-    //if (N*M < 3 || N*M > 3) {cerr << "Change the labels to suit this number of data sets / auxiliary independent variable selections!" << endl; exit(1);}
-    //labels_aux.push_back("$20 < p_{T,jet} < 25 GeV/c$");
-    //labels_aux.push_back("$25 < p_{T,jet} < 30 GeV/c$");
-    //labels_aux.push_back("$30 < p_{T,jet} < 40 GeV/c$");
+    vector<string> labels_aux;
+    getline(fset,burn);
     for (int i = 0; i < N; ++ i) {
         vector<string> labels_aux;
-        if (i == 0) {
-    labels_aux.push_back("$M$ for $20 < p_{T} < 25 GeV/c");
-    //labels_aux.push_back("$<M>$ for $R = 0.4$");
-    //labels_aux.push_back("$<M>$ for $R = 0.6$");
-    labels.push_back(labels_aux);
+        for (int j = 0; j < M; ++ j) {
+            getline(fset,val);
+            labels_aux.push_back(val);
         }
-        if (i == 1) {
-    labels_aux.push_back("$M_{g}$ for $20 < p_{T} < 25 GeV/c$");
-    //labels_aux.push_back("$<M_{g}>$ for $R = 0.4$");
-    //labels_aux.push_back("$<M_{g}>$ for $R = 0.6$");
-    labels.push_back(labels_aux);
-        }
+        labels.push_back(labels_aux);
     }
 
     //!!!!!! !!!!!!//
+    
+    cout << "E" << endl;
     
     TFile *fin = new TFile(root_in.c_str(),"READ");
 
     for (int i = 0; i < N; ++ i) {
          for (int j = 0; j < M; ++ j) {
-             string fileName = root_in_substr+"_dataset"+to_string(i)+"_selection"+to_string(j)+".txt";
+             cout << "F" << " " << i << " " << j << endl;
+             string fileName = root_in_substr+"_dataset"+to_string(i)+"_selection"+to_string(j)+"_temp.txt";
              ofstream fout;
              fout.open(fileName);
              if (fout.is_open()) {cout << "opened " << fileName << endl;}
-             else {cout << fileName << " could not be opened" <<endl;}
+             else {cerr << fileName << " could not be opened" <<endl; exit(1);}
              
              //only one distribution per file, for NxM files.
-             header (i, j, xaxis, yaxes, labels, fout);
+             header (i, j, xaxis, yaxes, labels, errlabels, fout);
              
              TH1D* hist = (TH1D*) fin->Get((datname[i]+to_string(j)).c_str());
-             TH1D* hstat = (TH1D*) fin->Get((statname[i]+to_string(j)).c_str());//prob. a copy of "hist"
-             TH1D* hsyst = (TH1D*) fin->Get((systname[i]+to_string(j)).c_str());
+             vector<TH1D*> herrs;
+             for (int k = 0; k < Nerrs; ++ k) {
+                 herrs.push_back((TH1D*) fin->Get((errnames[i][k]+to_string(j)).c_str()));
+             }
              
-             body(hist, hstat, hsyst, fout);
+             body(hist, herrs, fout);
              fout << "***";
              
              cout << "closing " << fileName << endl;
