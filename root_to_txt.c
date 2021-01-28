@@ -61,12 +61,13 @@ void body (TH1D* hist, vector<TH1D*> herrs, ofstream& file) {
 //helper function to make sure I never forget to burn the comment line
 void get_line (ifstream& file, string& burn, string& val) {
     getline(file, burn);
+    if (burn[0] != '#') {
+        cerr << "Somehow an input line was treated as a comment! Please check the instructions in the settings.txt file, and try again." << endl; exit(1);
+    }
     getline(file, val);
-    return;
-}
-
-void open_file(string filename, ifstream& fset) {
-    
+    if (val[0] == '#') {
+        cerr << "Somehow a comment line was treated as an input! Please check the instructions in the settings.txt file, and try again." << endl; exit(1);
+    }
     return;
 }
 
@@ -95,7 +96,6 @@ void get_settings (int& N, int& M, string& root_in, string& xaxis, vector<string
     //how many uncertainties?
     get_line(fset,burn,val);
     int Nerrs = stoi(val);
-    cout << "test: " << Nerrs << endl;
     getline(fset,burn);
     for (int i = 0; i < N; ++ i) {
         vector<string> errname_aux;
@@ -118,9 +118,7 @@ void get_settings (int& N, int& M, string& root_in, string& xaxis, vector<string
     getline(fset,burn);
     for (int i = 0; i < N; ++ i) {
         getline(fset,val);
-        cout << "VAL? " << val << endl;
         yaxes.push_back(val);
-        cout << "yak? " << yaxes[i] << endl;
     }
     
     vector<string> labels_aux;
@@ -135,6 +133,7 @@ void get_settings (int& N, int& M, string& root_in, string& xaxis, vector<string
     }
     
     fset.close();
+    cout << "closed settings.txt" << endl;
     
     return;
 }
@@ -156,14 +155,13 @@ void root_to_txt() {
     
     string extension = ".root";
     int len_extension = extension.length();
-    cout << len_extension << endl;
     const string root_in_substr = root_in.substr(0,root_in.length() - len_extension); //removes ".root" (5 characters long)
     
     TFile *fin = new TFile(root_in.c_str(),"READ");
 
     for (int i = 0; i < N; ++ i) {
          for (int j = 0; j < M; ++ j) {
-             string fileName = root_in_substr+"_dataset"+to_string(i)+"_selection"+to_string(j)+"_temp.txt";
+             string fileName = root_in_substr+"_dataset"+to_string(i)+"_selection"+to_string(j)+".txt";
              ofstream fout;
              fout.open(fileName);
              if (fout.is_open()) {cout << "opened " << fileName << endl;}
@@ -181,10 +179,11 @@ void root_to_txt() {
              body(hist, herrs, fout);
              fout << "***";
              
-             cout << "closing " << fileName << endl;
              fout.close();
+             cout << "closed " << fileName << endl;
          }
     }
     
+    cout << "done!" << endl;
     return;
 }
