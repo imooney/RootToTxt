@@ -7,4 +7,4 @@ TO DO:
 * Make the code compliant with the STAR experiment's rules for sig. fig. reporting (here: https://drupal.star.bnl.gov/STAR/pwg/common/policies/significant-digits-hepdata-table )
 * At some point may go straight to yaml so we don't need an intermediary program, but don't want to reinvent the wheel.
 * Once the settings.txt file is implemented, can check that reading in is progressing as it should by asserting on the comment marker, #, throughout the file, to make sure we haven't e.g. read N+1 lines when we meant to read N.
-* Small things: encapsulate the settings.txt file checking into a function just to clear up the main function.
+* Small things: encapsulate the settings.txt file checking into a function just to clear up the main function; decouple the output filename from the input filename, and make it ~ FigK_i_j.txt where i is the dataset index and j is the "panel" index.

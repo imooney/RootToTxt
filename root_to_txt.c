@@ -15,21 +15,10 @@
     //one set of systematic uncertainties for each data set (i.e. the net systematic). Should also be easily extensible to multiple kinds of systematic uncertainty.
 //It outputs (to one .txt file per data set and panel) in the format preferred by YAML_maker, a project by Christine Nattrass' undergraduate student Tom Krobatsch  (https://github.com/tkrobatsch/YAML_Maker) (tutorial by Christine here: https://www.youtube.com/watch?v=_hz6EVPeuW4&feature=youtu.be)
 
-//things to be set each time (possibly un-hard-coded later):
-//N
-//M
-//name of root file - probably have it named according to the fig. number.
-//name of hist for data points
-//name of hist for stat errs (probably name of hist for data)
-//name of hist for sym errs
-//x-axis title, y-axis title(s) - just one y-axis title for now
-//dataset labels (NxM of them)
-
 
 //~~scratch for self~~:
 //need to figure out what pre-formatting to do.
     //will probably require "name_" followed by a number from 0 to M-1, for each panel, and one "name" for each data set and a separate "name" for systematics.
-//need to figure out how header and body are separated.
 //need to figure out star's requirements for sig figs and how to code them up.
 //note: only going to consider 1 auxiliary independent variable selection per file
 
@@ -38,7 +27,7 @@ using namespace std;
 //pass: i < N, j < M, x-axis, y-axes, labels, errlabels, txtfile
 void header (const int i, const int j, const string xtitle, vector<string> ytitles, vector<vector<string>> labels, vector<string> errlabels, ofstream& file) {
     file << xtitle << "\n";
-    file << 2 << "\n"; //N_datasets / file = 1 by default
+    file << 1 << "\n"; //N_datasets / output_file = 1 by default
     file << ytitles[i] << "\n";
     file << labels[i][j] << "\n";
     file << "yes\n"; //data is binned
@@ -76,30 +65,28 @@ void get_line (ifstream& file, string& burn, string& val) {
     return;
 }
 
-void root_to_txt_inprogress() {
-  
-    cout << "A" << endl;
+void open_file(string filename, ifstream& fset) {
+    
+    return;
+}
+
+void get_settings (int& N, int& M, string& root_in, string& xaxis, vector<string>& yaxes, vector<vector<string>>& labels, vector<string>& errlabels, vector<string>& datname, vector<vector<string>>& errnames) {
+
     string settingsFile = "settings.txt";
     ifstream fset;
     fset.open(settingsFile);
     if (fset.is_open()) {cout << "opened " << settingsFile << endl;}
     else {cerr << settingsFile << " could not be opened" <<endl; exit(1);}
     
-    cout << "B" << endl;
     string val;
     string burn; //burn is for comments that we skip over - not strictly necessary, but helpful mentally
     
     get_line(fset,burn,val);
-    int N = stoi(val);// N data sets
+    N = stoi(val);// N data sets
     get_line(fset,burn,val);
-    int M = stoi(val); // M panels (e.g. variation over R or pT)
+    M = stoi(val); // M panels (e.g. variation over R or pT)
     get_line(fset,burn,val);
-    string root_in = val;
-    string extension = ".root";
-    int len_extension = extension.length();
-    cout << len_extension << endl;
-    const string root_in_substr = root_in.substr(0,root_in.length() - len_extension); //removes ".root" (5 characters long)
-    vector<string> datname;
+    root_in = val;
     getline(fset,burn);
     for (int i = 0; i < N; ++ i) {
         getline(fset,val);//normal getline since we have N lines without comments
@@ -109,7 +96,6 @@ void root_to_txt_inprogress() {
     get_line(fset,burn,val);
     int Nerrs = stoi(val);
     cout << "test: " << Nerrs << endl;
-    vector<vector<string>> errnames;
     getline(fset,burn);
     for (int i = 0; i < N; ++ i) {
         vector<string> errname_aux;
@@ -120,9 +106,6 @@ void root_to_txt_inprogress() {
         errnames.push_back(errname_aux);
     }
     
-    cout << "C" << endl;
-    
-    vector<string> errlabels;
     getline(fset,burn);
     for (int i = 0; i < Nerrs; ++ i) {
         getline(fset,val);
@@ -130,10 +113,9 @@ void root_to_txt_inprogress() {
     }
     
     get_line(fset,burn,val);
-    const string xaxis = val;
+    xaxis = val;
     
     getline(fset,burn);
-    vector<string> yaxes;
     for (int i = 0; i < N; ++ i) {
         getline(fset,val);
         cout << "VAL? " << val << endl;
@@ -141,9 +123,6 @@ void root_to_txt_inprogress() {
         cout << "yak? " << yaxes[i] << endl;
     }
     
-    cout << "D" << endl;
-    
-    vector<vector<string>> labels;
     vector<string> labels_aux;
     getline(fset,burn);
     for (int i = 0; i < N; ++ i) {
@@ -154,16 +133,36 @@ void root_to_txt_inprogress() {
         }
         labels.push_back(labels_aux);
     }
-
-    //!!!!!! !!!!!!//
     
-    cout << "E" << endl;
+    fset.close();
+    
+    return;
+}
+
+void root_to_txt() {
+  
+    //things to be set each time (possibly un-hard-coded later):
+    int N; //number of datasets
+    int M; //number of "panels" (i.e. auxiliary independent variables like pT)
+    string root_in; //name of root file
+    string xaxis; //title of x-axis
+    vector<string> yaxes; //title of y-axis
+    vector<vector<string>> labels; //dataset & "panel" labels
+    vector<string> errlabels; //e.g. "stat", "syst", ...
+    vector<string> datname; //histograms from which we pull values
+    vector<vector<string>> errnames; //histograms from which we pull uncertainties
+    
+    get_settings(N, M, root_in, xaxis, yaxes, labels, errlabels, datname, errnames);
+    
+    string extension = ".root";
+    int len_extension = extension.length();
+    cout << len_extension << endl;
+    const string root_in_substr = root_in.substr(0,root_in.length() - len_extension); //removes ".root" (5 characters long)
     
     TFile *fin = new TFile(root_in.c_str(),"READ");
 
     for (int i = 0; i < N; ++ i) {
          for (int j = 0; j < M; ++ j) {
-             cout << "F" << " " << i << " " << j << endl;
              string fileName = root_in_substr+"_dataset"+to_string(i)+"_selection"+to_string(j)+"_temp.txt";
              ofstream fout;
              fout.open(fileName);
@@ -175,7 +174,7 @@ void root_to_txt_inprogress() {
              
              TH1D* hist = (TH1D*) fin->Get((datname[i]+to_string(j)).c_str());
              vector<TH1D*> herrs;
-             for (int k = 0; k < Nerrs; ++ k) {
+             for (int k = 0; k < errlabels.size(); ++ k) {
                  herrs.push_back((TH1D*) fin->Get((errnames[i][k]+to_string(j)).c_str()));
              }
              
