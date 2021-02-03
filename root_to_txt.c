@@ -15,11 +15,6 @@
     //one set of systematic uncertainties for each data set (i.e. the net systematic). Should also be easily extensible to multiple kinds of systematic uncertainty.
 //It outputs (to one .txt file per data set and panel) in the format preferred by YAML_maker, a project by Christine Nattrass' undergraduate student Tom Krobatsch  (https://github.com/tkrobatsch/YAML_Maker) (tutorial by Christine here: https://www.youtube.com/watch?v=_hz6EVPeuW4&feature=youtu.be)
 
-
-//~~scratch for self~~:
-//need to figure out what pre-formatting to do.
-    //will probably require "name_" followed by a number from 0 to M-1, for each panel, and one "name" for each data set and a separate "name" for systematics.
-//need to figure out star's requirements for sig figs and how to code them up.
 //note: only going to consider 1 auxiliary independent variable selection per file
 
 using namespace std;

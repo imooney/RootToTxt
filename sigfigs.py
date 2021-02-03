@@ -22,12 +22,12 @@ from decimal import *
 import re
 
 #assumes for now that the files are in the same directory as the script - change to suit your needs
-in_dir=''
-out_dir=''
+in_dir='../results_txt/'
+out_dir='../results_txt/'
 
 #change to the input and output file names respectively
-file_name='[file input goes here].txt'
-new_file_name = '[file output goes here].txt'
+file_name='Fig6_dataset_1_selection_2_unformatted.txt'
+new_file_name = 'Fig6_dataset_1_selection_2.txt'
 
 file=in_dir+file_name
 newfile=out_dir+new_file_name
@@ -118,3 +118,4 @@ def ERR_Format(err):
     realerr=my_round(err,var,digits)
     return realerr,var,digits
 
+read_file(file, newfile)
