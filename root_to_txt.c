@@ -73,7 +73,7 @@ void get_line (ifstream& file, string& burn, string& val) {
 
 void get_settings (int& N, int& M, string& root_in, string& xaxis, vector<string>& yaxes, vector<vector<string>>& labels, vector<string>& errlabels, vector<string>& datname, vector<vector<string>>& errnames) {
 
-    string settingsFile = "settings.txt";
+    string settingsFile = "../settings_Fig4b.txt";
     ifstream fset;
     fset.open(settingsFile);
     if (fset.is_open()) {cout << "opened " << settingsFile << endl;}
