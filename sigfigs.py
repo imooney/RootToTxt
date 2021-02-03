@@ -22,12 +22,12 @@ from decimal import *
 import re
 
 #assumes for now that the files are in the same directory as the script - change to suit your needs
-in_dir='../results_txt/'
-out_dir='../results_txt/'
+in_dir=''
+out_dir=''
 
 #change to the input and output file names respectively
-file_name='Fig6_dataset_1_selection_2_unformatted.txt'
-new_file_name = 'Fig6_dataset_1_selection_2.txt'
+file_name='[inputnamehere].txt'
+new_file_name = '[outputnamehere].txt'
 
 file=in_dir+file_name
 newfile=out_dir+new_file_name
