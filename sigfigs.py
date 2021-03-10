@@ -22,12 +22,12 @@ from decimal import *
 import re
 
 #assumes for now that the files are in the same directory as the script - change to suit your needs
-in_dir=''
-out_dir=''
+in_dir='/path/to/dir/in/'
+out_dir='/path/to/dir/out/'
 
 #change to the input and output file names respectively
-file_name='[inputnamehere].txt'
-new_file_name = '[outputnamehere].txt'
+file_name='in.txt'
+new_file_name = 'out.txt'
 
 file=in_dir+file_name
 newfile=out_dir+new_file_name
@@ -40,18 +40,15 @@ def read_file(file, newfile):
     newfile=open(newfile, 'w')
     line=file.readline()
     while line:                     #for each new line in file
-        newline=parse_line(line)    #apply function parse_line
+        newline=parse_line(line)
         newfile.write(str(newline))         #write the return of parse_line to new file
         line=file.readline()
         
 def parse_line(line):
-        if re.match('.*[0-9]-.*[0-9]', line):
-            subline = re.search(r'\t(?P<data>.*?)\n', line)
-            if subline:
-                #print(subline.group("data"))
-                array_no_bin = np.fromstring(subline.group("data"), dtype=float, sep='\t')
-                bin = line.split('\t')[0]
-                #array_no_bin = line.split('\t')[1:len(line)]
+        if re.match('.*[0-9]\t.*[0-9]', line):
+                subline=np.fromstring(line, dtype=float, sep='\t')
+                array_no_bin=subline[2:len(subline)]
+                bin = line.split('\t')[0]+'\t'+line.split('\t')[1]
                 er_var_dig_arr=[]
                 for i in range(1,len(array_no_bin)): #starts at 1 bc we skip the value, only compare error sizes
                     er_var_dig_arr.append(ERR_Format(array_no_bin[i]))
@@ -65,7 +62,7 @@ def parse_line(line):
                 newline = newline+rounded_number+errs
                 newline.append('\n')
                 newline = str('\t'.join(newline)) #collapses array into single line separated by tabs
-        if re.match('.*[0-9]-.*[0-9]', line)==None:
+        if re.match('.*[0-9]\t.*[0-9]', line)==None:
             newline=line
             
         return(newline)
