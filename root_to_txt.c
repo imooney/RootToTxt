@@ -41,7 +41,7 @@ void header (const int i, const int j, const string xtitle, vector<string> ytitl
 void body (TH1D* hist, vector<TH1D*> herrs, ofstream& file) {
     
     for (int i = 1; i <= hist->GetNbinsX(); ++ i) {//hstat->GetNbinsX(),hsyst->GetNbinsX() must give same #
-        file << hist->GetXaxis()->GetBinLowEdge(i) << "-" << hist->GetXaxis()->GetBinUpEdge(i) << "\t";
+        file << hist->GetXaxis()->GetBinLowEdge(i) << "\t" << hist->GetXaxis()->GetBinUpEdge(i) << "\t";
         file << hist->GetBinContent(i) << "\t";
         for (int j = 0; j < herrs.size(); ++ j) {
             file << herrs[j]->GetBinError(i);
